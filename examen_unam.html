@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Examen UNAM | OCS</title>
+  <style>
+    :root {
+      --bg: #07111f;
+      --panel: #0f172a;
+      --panel-2: #111c31;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --accent: #22c55e;
+      --accent-2: #3b82f6;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --border: #24344f;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, Arial, sans-serif;
+      color: var(--text);
+      background: linear-gradient(135deg, #07111f 0%, #111c31 100%);
+      min-height: 100vh;
+      padding: 24px;
+    }
+    .wrap { max-width: 1200px; margin: 0 auto; }
+    .topbar {
+      display: flex; justify-content: space-between; align-items: center; gap: 16px;
+      background: rgba(15,23,42,.95); border: 1px solid var(--border); border-radius: 18px; padding: 18px 22px;
+      margin-bottom: 20px; box-shadow: 0 14px 35px rgba(0,0,0,.25);
+    }
+    .brand h1 { margin: 0; font-size: 1.2rem; }
+    .brand p { margin: 4px 0 0; color: var(--muted); font-size: .95rem; }
+    .pill {
+      display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 999px; border: 1px solid var(--border); background: rgba(255,255,255,.04);
+      color: #e2e8f0; font-weight: 600;
+    }
+    .grid { display: grid; grid-template-columns: 1.6fr .8fr; gap: 20px; }
+    .card {
+      background: rgba(15,23,42,.95); border: 1px solid var(--border); border-radius: 20px; padding: 22px;
+      box-shadow: 0 14px 35px rgba(0,0,0,.22);
+    }
+    .progress-wrap { margin-bottom: 16px; }
+    .progress-bar { height: 10px; border-radius: 999px; background: #1e293b; overflow: hidden; }
+    .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent-2), var(--accent)); transition: width .25s ease; }
+    .meta { display: flex; justify-content: space-between; color: var(--muted); font-size: .95rem; margin-top: 8px; }
+    .question-title { font-size: 1.08rem; line-height: 1.6; margin-bottom: 14px; }
+    .subject { display: inline-block; padding: 6px 10px; border-radius: 999px; background: rgba(59,130,246,.16); color: #bfdbfe; font-size: .8rem; margin-bottom: 12px; }
+    .options { display: grid; gap: 10px; }
+    .option {
+      display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--border); cursor: pointer; transition: .2s;
+      background: rgba(255,255,255,.03);
+    }
+    .option:hover { border-color: #4f6e9e; transform: translateY(-1px); }
+    .option.selected { background: rgba(59,130,246,.14); border-color: #60a5fa; }
+    .option input { accent-color: #60a5fa; transform: scale(1.05); }
+    .actions { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 20px; }
+    button {
+      border: none; border-radius: 999px; padding: 10px 16px; font-weight: 700; cursor: pointer;
+      color: #fff; background: linear-gradient(90deg, var(--accent-2), #4f46e5);
+    }
+    button.secondary { background: #1e293b; }
+    .summary-card h3 { margin-top: 0; }
+    .summary-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+    .summary-list li { display: flex; justify-content: space-between; padding: 10px 12px; border-radius: 12px; background: rgba(255,255,255,.04); color: #e2e8f0; }
+    .score-box { padding: 14px; border-radius: 14px; margin-bottom: 12px; }
+    .score-box.good { background: rgba(34,197,94,.14); color: #bbf7d0; }
+    .score-box.warn { background: rgba(245,158,11,.14); color: #fde68a; }
+    .score-box.bad { background: rgba(239,68,68,.14); color: #fecaca; }
+    .hide { display: none; }
+    .result-list { display: grid; gap: 8px; margin-top: 12px; }
+    .result-item { padding: 10px 12px; border-radius: 12px; background: rgba(255,255,255,.04); }
+    @media (max-width: 920px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="topbar">
+      <div class="brand">
+        <h1>Examen de Admisión UNAM</h1>
+        <p>Simulacro tipo opción múltiple con evaluación automática.</p>
+      </div>
+      <div class="pill" id="timer">⏱ 30:00</div>
+    </header>
+
+    <div class="grid">
+      <section class="card">
+        <div class="progress-wrap">
+          <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+          <div class="meta">
+            <span id="progressText">Pregunta 1 de 24</span>
+            <span id="answeredText">0 respondidas</span>
+          </div>
+        </div>
+
+        <div id="questionBox"></div>
+        <div class="actions">
+          <button class="secondary" id="backBtn">Anterior</button>
+          <button id="nextBtn">Siguiente</button>
+        </div>
+      </section>
+
+      <aside class="card summary-card">
+        <h3>Resumen del examen</h3>
+        <div class="score-box good" id="scoreBox">
+          <strong>Completa todas las preguntas</strong>
+          <div>Tu resultado se mostrará al terminar.</div>
+        </div>
+        <ul class="summary-list">
+          <li><span>Preguntas</span><strong>24</strong></li>
+          <li><span>Respondidas</span><strong id="summaryAnswered">0</strong></li>
+          <li><span>Aciertos</span><strong id="summaryCorrect">0</strong></li>
+          <li><span>Calificación</span><strong id="summaryScore">0/24</strong></li>
+        </ul>
+        <div id="resultSummary" class="result-list"></div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    const questions = [
+      { subject: 'Historia Universal', text: 'Proceso histórico que marca el inicio de la Edad Contemporánea.', options: ['La Revolución Francesa', 'La caída del Imperio Romano de Oriente', 'La Guerra de los Cien Años', 'La Reforma'], answer: 0 },
+      { subject: 'Historia Universal', text: 'En el ámbito político, la Ilustración influyó en el establecimiento de un sistema denominado:', options: ['Monarquía absoluta', 'Filosofía ilustrada', 'Sistema feudal', 'Despotismo ilustrado'], answer: 3 },
+      { subject: 'Historia Universal', text: '¿A qué hace referencia el texto sobre el imperio colonial inglés?', options: ['A la descolonización', 'A la revolución industrial', 'Al imperialismo inglés', 'A la doctrina Monroe'], answer: 2 },
+      { subject: 'Historia Universal', text: '¿Qué régimen político se caracterizó por la sumisión total del individuo a un proyecto de futuro?', options: ['Socialista', 'Anarquismo', 'Totalitario', 'Conservador'], answer: 2 },
+      { subject: 'Historia Universal', text: '¿Qué organización defendía la libertad democrática mediante colaboración política, económica y militar?', options: ['OTAN', 'Pacto de Varsovia', 'Unión Europea', 'Tratado de Libre Comercio'], answer: 0 },
+      { subject: 'Historia de México', text: 'Primera forma de gobierno que se estableció en el México independiente:', options: ['Dictadura', 'República federal', 'Monarquía', 'Imperio'], answer: 3 },
+      { subject: 'Historia de México', text: 'Con los gobiernos surgidos de la Revolución de Ayutla se establecieron principios:', options: ['Conservadores', 'De la democracia liberal', 'Monárquicos', 'Liberales en el gobierno'], answer: 1 },
+      { subject: 'Historia de México', text: '¿Qué documento expresó el proyecto económico, político y social de los liberales?', options: ['Constitución de 1857', 'Bases Orgánicas', 'Siete Leyes de 1836', 'Plan de Tacubaya'], answer: 0 },
+      { subject: 'Historia de México', text: '¿Quién dio seguimiento al proyecto insurgente tras la muerte de Hidalgo?', options: ['Allende', 'Iturbide', 'Calleja', 'Morelos'], answer: 3 },
+      { subject: 'Historia de México', text: '¿Qué plan tuvo como finalidad destruir el poder de Santa Anna?', options: ['Plan de Ayutla', 'Plan de Tuxtepec', 'Plan de Guadalupe', 'Plan de San Luis'], answer: 0 },
+      { subject: 'Español', text: '¿Qué tipo de texto predomina cuando se busca explicar un proceso paso a paso?', options: ['Narrativo', 'Descriptivo', 'Expositivo', 'Argumentativo'], answer: 2 },
+      { subject: 'Español', text: 'En una oración, la palabra que nombra al sujeto de una acción es:', options: ['Adjetivo', 'Verbo', 'Sustantivo', 'Adverbio'], answer: 2 },
+      { subject: 'Español', text: '¿Qué opción presenta un sinónimo correcto de “claro”?', options: ['Oscuro', 'Difuso', 'Limpio', 'Lúcido'], answer: 3 },
+      { subject: 'Matemáticas', text: '¿Cuál es el resultado de 12 × 8?', options: ['84', '90', '96', '100'], answer: 2 },
+      { subject: 'Matemáticas', text: 'El valor de x en 3x + 6 = 21 es:', options: ['3', '5', '7', '9'], answer: 2 },
+      { subject: 'Matemáticas', text: 'El área de un cuadrado de lado 7 cm es:', options: ['14 cm²', '28 cm²', '49 cm²', '56 cm²'], answer: 2 },
+      { subject: 'Física', text: 'La fuerza que opone el movimiento de un cuerpo en contacto con una superficie se denomina:', options: ['Impulso', 'Fricción', 'Inercia', 'Aceleración'], answer: 1 },
+      { subject: 'Física', text: 'En una caída libre, la aceleración gravitacional es aproximadamente:', options: ['8 m/s²', '9.8 m/s²', '10.5 m/s²', '12 m/s²'], answer: 1 },
+      { subject: 'Biología', text: 'La unidad básica de la vida es:', options: ['El átomo', 'La célula', 'El tejido', 'El órgano'], answer: 1 },
+      { subject: 'Biología', text: '¿Qué proceso permite a las plantas fabricar su alimento?', options: ['Respiración', 'Fotosíntesis', 'Digestión', 'Excreción'], answer: 1 },
+      { subject: 'Química', text: '¿Qué tipo de enlace se forma al compartir electrones?', options: ['Iónico', 'Metálico', 'Covalente', 'Puente de hidrógeno'], answer: 2 },
+      { subject: 'Química', text: 'Un pH de 2 indica que la sustancia es:', options: ['Neutra', 'Ácida', 'Básica', 'Alcalina'], answer: 1 },
+      { subject: 'Geografía', text: 'La línea imaginaria que divide la Tierra en hemisferio norte y sur es:', options: ['Meridiano de Greenwich', 'Trópico de Cáncer', 'Ecuador', 'Trópico de Capricornio'], answer: 2 },
+      { subject: 'Literatura', text: 'La obra que narra hechos ficticios con personajes y conflicto se conoce como:', options: ['Poema', 'Ensayo', 'Novela', 'Artículo'], answer: 2 }
+    ];
+
+    let current = 0;
+    const answers = new Array(questions.length).fill(null);
+    const questionBox = document.getElementById('questionBox');
+    const progressFill = document.getElementById('progressFill');
+    const progressText = document.getElementById('progressText');
+    const answeredText = document.getElementById('answeredText');
+    const summaryAnswered = document.getElementById('summaryAnswered');
+    const summaryCorrect = document.getElementById('summaryCorrect');
+    const summaryScore = document.getElementById('summaryScore');
+    const scoreBox = document.getElementById('scoreBox');
+    const resultSummary = document.getElementById('resultSummary');
+    const backBtn = document.getElementById('backBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const timerEl = document.getElementById('timer');
+
+    function renderQuestion() {
+      const q = questions[current];
+      const selected = answers[current];
+      questionBox.innerHTML = `
+        <div class="subject">${q.subject}</div>
+        <div class="question-title">${current + 1}. ${q.text}</div>
+        <div class="options">
+          ${q.options.map((opt, idx) => `
+            <label class="option ${selected === idx ? 'selected' : ''}">
+              <input type="radio" name="q${current}" value="${idx}" ${selected === idx ? 'checked' : ''} />
+              <span>${opt}</span>
+            </label>
+          `).join('')}
+        </div>
+      `;
+      const labels = questionBox.querySelectorAll('.option');
+      labels.forEach(label => {
+        label.addEventListener('click', () => {
+          const val = Number(label.querySelector('input').value);
+          answers[current] = val;
+          renderQuestion();
+          updateSummary();
+        });
+      });
+      updateProgress();
+      updateSummary();
+    }
+
+    function updateProgress() {
+      const percent = ((current + 1) / questions.length) * 100;
+      progressFill.style.width = `${percent}%`;
+      progressText.textContent = `Pregunta ${current + 1} de ${questions.length}`;
+      const answered = answers.filter(v => v !== null).length;
+      answeredText.textContent = `${answered} respondidas`;
+      backBtn.disabled = current === 0;
+      nextBtn.textContent = current === questions.length - 1 ? 'Enviar examen' : 'Siguiente';
+    }
+
+    function updateSummary() {
+      const answered = answers.filter(v => v !== null).length;
+      const correct = answers.reduce((acc, value, idx) => acc + (value === questions[idx].answer ? 1 : 0), 0);
+      summaryAnswered.textContent = answered;
+      summaryCorrect.textContent = correct;
+      summaryScore.textContent = `${correct}/${questions.length}`;
+      const result = correct >= 18 ? 'Aprobado' : 'Requiere más práctica';
+      scoreBox.innerHTML = `<strong>${result}</strong><div>${correct} aciertos de ${questions.length} preguntas.</div>`;
+      scoreBox.className = `score-box ${correct >= 18 ? 'good' : correct >= 12 ? 'warn' : 'bad'}`;
+    }
+
+    function finishExam() {
+      const correct = answers.reduce((acc, value, idx) => acc + (value === questions[idx].answer ? 1 : 0), 0);
+      const bySubject = questions.reduce((acc, q, idx) => {
+        const key = q.subject;
+        if (!acc[key]) acc[key] = { correct: 0, total: 0 };
+        acc[key].total += 1;
+        if (answers[idx] === q.answer) acc[key].correct += 1;
+        return acc;
+      }, {});
+      const entries = Object.entries(bySubject).map(([subject, data]) => `<div class="result-item">${subject}: ${data.correct}/${data.total}</div>`).join('');
+      resultSummary.innerHTML = `
+        <div><strong>Resultado final</strong></div>
+        <div class="result-item">Aciertos: ${correct}/${questions.length}</div>
+        <div class="result-item">Estado: ${correct >= 18 ? 'Aprobado' : 'Requiere más práctica'}</div>
+        ${entries}
+      `;
+    }
+
+    backBtn.addEventListener('click', () => {
+      if (current > 0) {
+        current -= 1;
+        renderQuestion();
+      }
+    });
+
+    nextBtn.addEventListener('click', () => {
+      if (current < questions.length - 1) {
+        current += 1;
+        renderQuestion();
+      } else {
+        finishExam();
+        nextBtn.textContent = 'Examen completado';
+        nextBtn.disabled = true;
+        backBtn.disabled = true;
+      }
+    });
+
+    let timeLeft = 30 * 60;
+    const timer = setInterval(() => {
+      timeLeft -= 1;
+      const mins = String(Math.floor(timeLeft / 60)).padStart(2, '0');
+      const secs = String(timeLeft % 60).padStart(2, '0');
+      timerEl.textContent = `⏱ ${mins}:${secs}`;
+      if (timeLeft <= 0) {
+        clearInterval(timer);
+        finishExam();
+        nextBtn.textContent = 'Tiempo agotado';
+        nextBtn.disabled = true;
+        backBtn.disabled = true;
+      }
+    }, 1000);
+
+    renderQuestion();
+  </script>
+</body>
+</html>
